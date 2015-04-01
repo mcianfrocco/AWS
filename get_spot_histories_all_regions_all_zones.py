@@ -10,6 +10,7 @@ from os import system
 import linecache
 import time
 import datetime
+import calendar
 
 #=========================
 def setupParserOptions():
@@ -86,30 +87,30 @@ def getSpotHistory(params):
 #==============================
 def checkConflicts(params):
 
-	instanceList='m3.large, i2.8xlarge, c3.2xlarge, hs1.8xlarge, c1.xlarge, r3.4xlarge, g2.2xlarge, m1.small, c1.medium, m3.2xlarge, c3.8xlarge, m2.xlarge, r3.2xlarge, t1.micro, cr1.8xlarge, r3.8xlarge, cc1.4xlarge, m1.medium, r3.large, c3.xlarge, i2.xlarge, m3.medium, cc2.8xlarge, m1.large, cg1.4xlarge, i2.2xlarge, c3.large, i2.4xlarge, c3.4xlarge, r3.xlarge, m1.xlarge, hi1.4xlarge, m2.4xlarge, m2.2xlarge, m3.xlarge'.split(',')
+	instanceList='m3.large, i2.8xlarge, c3.2xlarge, hs1.8xlarge, c1.xlarge, r3.4xlarge, g2.2xlarge, m1.small, c1.medium, m3.2xlarge, c3.8xlarge, m2.xlarge, r3.2xlarge, t1.micro, cr1.8xlarge, r3.8xlarge, cc1.4xlarge, m1.medium, r3.large, c3.xlarge, i2.xlarge, m3.medium, cc2.8xlarge, m1.large, cg1.4xlarge, i2.2xlarge, c3.large, i2.4xlarge, c3.4xlarge, r3.xlarge, m1.xlarge, hi1.4xlarge, m2.4xlarge, m2.2xlarge, m3.xlarge'.split(', ')
 
 	if not params['instance'] in instanceList:
-		print 'Error: Instance %s is not a valid Amazon instance type. Exiting.' %(params['instance'])
+		print '\nError: Instance %s is not a valid Amazon instance type. Exiting.\n' %(params['instance'])
 		sys.exit()
 
 	if params['days'] >90:
-		print 'A larger time frame than 90 days has been specified (%i days). Using 90 day limit instead.'
+		print '\nA larger time frame than 90 days has been specified (%i days). Using 90 day limit instead.\n' %(params['days'])
 		params['days']=90
 
 	return params
 
 #==============================
-def getDates(days):
+def getDates(prevDay):
 
 	today = datetime.datetime.now()
-	day_today=today.strftime('%j')
+	dtdelta=datetime.timedelta(days=-prevDay)
+	prevDate=today+dtdelta
 
-	day_prev=int(day_today)-days
-
+	return '%s' %(prevDate.strftime('%Y-%m-%d'))
 
 #==============================
 if __name__ == "__main__":
 
 	params=setupParserOptions()
-	getDates(params['days'])
+	prevDate=getDates(params['days'])
 	params=checkConflicts(params)

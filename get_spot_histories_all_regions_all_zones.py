@@ -122,10 +122,35 @@ def getDates(prevDay):
 
 	return '%s' %(prevDate.strftime('%Y-%m-%d'))
 
+#=============================
+def checkAWSPath():
+
+	ec2 = subprocess.Popen("env | grep EC2_HOME", shell=True, stdout=subprocess.PIPE).stdout.read().strip()
+	
+	if not ec2:
+                print '\n Error: No AWS CLI tools environment set for $EC2_HOME. Exiting.\n' 
+
+	key=subprocess.Popen("env | grep AWS_ACCESS_KEY", shell=True, stdout=subprocess.PIPE).stdout.read().strip()
+	secret=subprocess.Popen("env | grep AWS_SECRET_KEY", shell=True, stdout=subprocess.PIPE).stdout.read().strip()
+	awsid=	subprocess.Popen("env | grep AWS_USER_ID", shell=True, stdout=subprocess.PIPE).stdout.read().strip()
+
+	if not key: 
+		print '\n Error: No AWS_ACCESS_KEY specified in the environment as $AWS_ACCESS_KEY. Exiting.\n' 
+		sys.exit()
+
+	if not secret: 
+                print '\n Error: No AWS_SECRET_KEY specified in the environment as $AWS_SECRET_KEY. Exiting.\n' 
+		sys.exit()
+
+	if not awsid: 
+                print '\n Error: No AWS_USER_ID specified in the environment as $AWS_USER_ID. Exiting.\n' 
+		sys.exit()
 #==============================
 if __name__ == "__main__":
 
 	params=setupParserOptions()
+	
+	checkAWSPath()
 	params=checkConflicts(params)
 	prevDate=getDates(params['days'])
 

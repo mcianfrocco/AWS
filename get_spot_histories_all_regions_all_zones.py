@@ -37,23 +37,23 @@ def setupParserOptions():
         return params
 
 #=============================
-def getSpotHistory(params):	
+def getSpotHistory(params,outdir,timeFrame,currentTime):	
 
 	#Inputs
-	instance=sys.argv[1]
+	instance=params['instance']
 
 	#Regions returned from command: $ ec2-describe-regions
-	if os.path.exists('regions.txt'): 
-		os.remove('regions.txt')
+	if os.path.exists('%s/regions.txt'%(outdir)): 
+		os.remove('%s/regions.txt' %(outdir))
  
-	cmd = 'ec2-describe-regions > regions.txt'
+	cmd = 'ec2-describe-regions > %s/regions.txt' %(outdir)
 	subprocess.Popen(cmd,shell=True).wait()
 
-	r1 = open('regions.txt','r')
+	r1 = open('%s/regions.txt' %(outdir),'r')
 
 	#Loop over all regions
 	for regionline in r1:
-		print regionline
+		
 		region=regionline.split()[2]
 
 		os.environ["EC2_URL"] = "%s" %(region)
@@ -61,28 +61,38 @@ def getSpotHistory(params):
 		#Get region name
 		region=region.split('.')[1]
 
-		if os.path.exists('%s.txt' %(region)):
-			os.remove('%s.txt' %(region))
+		print '\n Working on region %s' %(region)
+
+		if os.path.exists('%s/%s.txt' %(outdir,region)):
+			os.remove('%s/%s.txt' %(outdir,region))
 
 		#Get list of availability zones
-		cmd = 'ec2-describe-availability-zones --region %s > %s.txt' %(region,region)
-		print cmd
+		cmd = 'ec2-describe-availability-zones --region %s > %s/%s.txt' %(region,outdir,region)
+		if params['debug'] is True:
+                                print cmd
 		subprocess.Popen(cmd,shell=True).wait()
 
-		f1=open('%s.txt' %(region),'r')
+		f1=open('%s/%s.txt' %(outdir,region),'r')
 
 		for line in f1: 
 			zone=line.split()[1]
 		
-			if os.path.exists('%s_%s_%s_to_%s_spotHistory.txt' %(zone,instance,timeFrame,currentTime)):
-				os.remove('%s_%s_%s_to_%s_spotHistory.txt' %(zone,instance,timeFrame,currentTime))	
+			if os.path.exists('%s/%s_%s_%s_to_%s_spotHistory.txt' %(outdir,zone,instance,timeFrame,currentTime)):
+				os.remove('%s/%s_%s_%s_to_%s_spotHistory.txt' %(outdir,zone,instance,timeFrame,currentTime))	
 
-			cmd = 'ec2-describe-spot-price-history -t %s -d Linux/UNIX -a %s -s %sT14:10:34-0500 > %s_%s_%s_to_%s_spotHistory.txt' %(instance,zone,timeFrame,zone,instance,timeFrame,currentTime)
-			print cmd
+			cmd = 'ec2-describe-spot-price-history -t %s -d Linux/UNIX -a %s -s %sT14:10:34-0500 > %s/%s_%s_%s_to_%s_spotHistory.txt' %(instance,zone,timeFrame,outdir,zone,instance,timeFrame,currentTime)
+			if params['debug'] is True:
+				print cmd
 			subprocess.Popen(cmd,shell=True).wait()
 			
 
 		f1.close()
+
+		os.remove('%s/%s.txt' %(outdir,region))
+
+	r1.close()
+	os.remove('%s/regions.txt' %(outdir))
+
 
 #==============================
 def checkConflicts(params):
@@ -96,6 +106,10 @@ def checkConflicts(params):
 	if params['days'] >90:
 		print '\nA larger time frame than 90 days has been specified (%i days). Using 90 day limit instead.\n' %(params['days'])
 		params['days']=90
+
+	if os.path.exists('SpotHistory_%s_%s_last%02ddays' %(params['instance'],datetime.datetime.now().strftime('%Y-%m-%d'),params['days'])):
+		print '\nError: Directory SpotHistory_%s_%s_last%02ddays already exists. Exiting.\n' %(params['instance'],datetime.datetime.now().strftime('%Y-%m-%d'),params['days'])
+		sys.exit()
 
 	return params
 
@@ -112,5 +126,10 @@ def getDates(prevDay):
 if __name__ == "__main__":
 
 	params=setupParserOptions()
-	prevDate=getDates(params['days'])
 	params=checkConflicts(params)
+	prevDate=getDates(params['days'])
+
+	outdir='SpotHistory_%s_%s_last%02ddays' %(params['instance'],datetime.datetime.now().strftime('%Y-%m-%d'),params['days'])
+	os.makedirs(outdir)
+	getSpotHistory(params,outdir,prevDate,datetime.datetime.now().strftime('%Y-%m-%d'))
+		

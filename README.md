@@ -16,4 +16,4 @@ export AWS_SECRET_KEY=[secret key]
 export AWS_USER_ID=[user id]
 ```
 ## Functionalities
-* get_spot_histories_all_regions_all_zones.py - retrieves all spot instance histories for all AWS regions over a specified interval for a specific instance type.
+* *get_spot_histories_all_regions_all_zones.py* - retrieves all spot instance histories for all AWS regions over a specified interval for a specific instance type.

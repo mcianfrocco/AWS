@@ -18,7 +18,7 @@ def setupParserOptions():
         parser.set_usage("%prog -i <instance type> --days=<days>")
         parser.add_option("-i",dest="instance",type="string",metavar="STRING",
                 help="Amazon instance type (e.g. r3.8xlarge, t2.micro, etc.)")
-        parser.add_option("--days",dest="days",type="int",metavar="INT",
+        parser.add_option("--days",dest="days",type="int",metavar="INT",default=90,
                 help="Timeframe over which to retrieve spot instance price history. Maximum is 90 days.")
 	parser.add_option("-d", action="store_true",dest="debug",default=False,
                 help="debug")
